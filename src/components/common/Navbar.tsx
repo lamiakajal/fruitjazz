@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -14,12 +14,22 @@ import {
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
+// Empty subscribe function for client detection
+const emptySubscribe = () => () => {};
+
 export default function Navbar() {
   const router = useRouter();
   const { totalItems, setIsCartOpen } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Safely detect client hydration without triggering ESLint cascading render rules
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
 
   const categories = [
     { name: "Pure Honey", href: "/shop?cat=honey" },
@@ -30,7 +40,7 @@ export default function Navbar() {
     { name: "Special Combos", href: "/shop?cat=combos", badge: "Sale" },
   ];
 
-  // Handle live search submission
+  // Handle product search navigation
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -66,7 +76,7 @@ export default function Navbar() {
       </div>
 
       {/* 2. Main Sticky Navigation */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200 shadow-sm transition-all">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200 shadow-xs transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
           {/* Brand Logo */}
           <Link href="/" className="flex items-center space-x-3 group">
@@ -115,10 +125,11 @@ export default function Navbar() {
             </Link>
           </nav>
 
-          {/* Action Icons */}
+          {/* Action Buttons */}
           <div className="flex items-center space-x-2 sm:space-x-3">
-            {/* Search Trigger */}
+            {/* Search Toggle Button */}
             <button
+              type="button"
               onClick={() => setSearchOpen(!searchOpen)}
               className={`p-2 rounded-full transition cursor-pointer ${
                 searchOpen
@@ -142,20 +153,41 @@ export default function Navbar() {
               </span>
             </Link>
 
-            {/* Shopping Cart Trigger */}
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative p-2.5 bg-amber-50 text-amber-700 rounded-full hover:bg-amber-100 transition shadow-xs cursor-pointer"
-              aria-label="Shopping Cart"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 bg-amber-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
-                {totalItems}
-              </span>
-            </button>
+            {/* Shopping Cart Trigger with Animated Badge & Tooltip */}
+            <div className="relative group">
+              <button
+                type="button"
+                onClick={() => setIsCartOpen(true)}
+                className="relative p-2.5 bg-amber-50 text-amber-700 rounded-full hover:bg-amber-100 transition shadow-xs cursor-pointer flex items-center justify-center"
+                aria-label="Shopping Cart"
+              >
+                <ShoppingBag
+                  className={`w-5 h-5 ${
+                    mounted && totalItems > 0
+                      ? "text-[#14532D]"
+                      : "text-stone-700"
+                  }`}
+                />
 
-            {/* Mobile Menu Hamburger */}
+                {mounted && totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-amber-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs animate-bounce">
+                    {totalItems}
+                  </span>
+                )}
+              </button>
+
+              <div className="absolute right-0 top-full mt-2 hidden group-hover:flex flex-col items-center z-50">
+                <div className="bg-stone-900 text-white text-[11px] font-semibold py-1.5 px-3 rounded-lg shadow-xl whitespace-nowrap">
+                  {mounted && totalItems > 0
+                    ? `View ${totalItems} item${totalItems > 1 ? "s" : ""} in cart`
+                    : "Your cart is empty"}
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Hamburger Button */}
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 text-stone-700 lg:hidden rounded-lg hover:bg-stone-100 transition cursor-pointer"
               aria-label="Toggle Mobile Menu"
@@ -169,9 +201,9 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* 3. Expandable Search Bar */}
+        {/* 3. Search Bar Dropdown */}
         {searchOpen && (
-          <div className="border-t border-stone-200 bg-stone-50/90 py-3 px-4 sm:px-6 animate-in slide-in-from-top-2 duration-200">
+          <div className="border-t border-stone-200 bg-stone-50/90 py-3 px-4 sm:px-6">
             <form
               onSubmit={handleSearchSubmit}
               className="max-w-3xl mx-auto flex items-center gap-2"
@@ -205,9 +237,9 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* 4. Mobile Responsive Navigation Drawer */}
+        {/* 4. Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-stone-200 bg-white px-5 pt-4 pb-6 space-y-4 shadow-xl animate-in slide-in-from-top-3 duration-200">
+          <div className="lg:hidden border-t border-stone-200 bg-white px-5 pt-4 pb-6 space-y-4 shadow-xl">
             <div className="space-y-1">
               <Link
                 href="/"
@@ -260,7 +292,7 @@ export default function Navbar() {
                 href="https://wa.me/923000000000"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#25D366] text-white rounded-xl text-sm font-bold shadow-sm"
+                className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#25D366] text-white rounded-xl text-sm font-bold shadow-xs"
               >
                 <Phone className="w-4 h-4" /> Order Directly on WhatsApp
               </a>

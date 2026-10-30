@@ -12,7 +12,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  // Default to the first weight variant (e.g. 250g)
+  // Default to the first weight variant
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [isAdded, setIsAdded] = useState(false);
   const { addToCart } = useCart();
@@ -20,7 +20,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const activeVariant =
     product.variants[selectedVariantIndex] || product.variants[0];
 
-  // Add item with currently selected weight package to CartContext
+  // Dispatch selected item to Cart Context
   const handleAddToCart = () => {
     addToCart({
       productId: product.id,
@@ -34,13 +34,13 @@ export default function ProductCard({ product }: ProductCardProps) {
     setIsAdded(true);
     setTimeout(() => {
       setIsAdded(false);
-    }, 1500);
+    }, 1200);
   };
 
   return (
     <div className="group bg-white rounded-2xl border border-stone-200/80 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
       <div>
-        {/* Product Media & Tags */}
+        {/* Product Media */}
         <div className="relative h-56 w-full overflow-hidden bg-stone-100">
           <Link href={`/product/${product.slug}`}>
             <Image
@@ -57,8 +57,9 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.category}
           </span>
 
-          {/* Wishlist Toggle Button */}
+          {/* Wishlist Button */}
           <button
+            type="button"
             className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-xs rounded-full text-stone-500 hover:text-red-500 hover:bg-white transition shadow-xs cursor-pointer"
             aria-label="Add to Wishlist"
           >
@@ -66,9 +67,8 @@ export default function ProductCard({ product }: ProductCardProps) {
           </button>
         </div>
 
-        {/* Product Meta Information */}
+        {/* Product Meta Details */}
         <div className="p-5 space-y-3">
-          {/* Star Rating & Reviews */}
           <div className="flex items-center gap-1.5 text-xs text-amber-500 font-bold">
             <Star className="w-3.5 h-3.5 fill-current" />
             <span>{product.rating}</span>
@@ -77,14 +77,12 @@ export default function ProductCard({ product }: ProductCardProps) {
             </span>
           </div>
 
-          {/* Product Title */}
           <Link href={`/product/${product.slug}`} className="block">
             <h3 className="font-serif font-bold text-stone-800 text-base leading-snug hover:text-amber-700 transition line-clamp-1">
               {product.name}
             </h3>
           </Link>
 
-          {/* Brief Description */}
           <p className="text-xs text-stone-500 line-clamp-2 leading-relaxed">
             {product.description}
           </p>
@@ -98,6 +96,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               {product.variants.map((v, i) => (
                 <button
                   key={v.weight}
+                  type="button"
                   onClick={() => setSelectedVariantIndex(i)}
                   className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition cursor-pointer ${
                     selectedVariantIndex === i
@@ -113,7 +112,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
 
-      {/* Dynamic Price Display & Cart Button */}
+      {/* Dynamic Price Display & Action Button */}
       <div className="p-5 pt-0 mt-2 border-t border-stone-100 flex items-center justify-between">
         <div>
           <span className="text-[11px] font-medium text-stone-400 block">
@@ -128,6 +127,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         <button
+          type="button"
           onClick={handleAddToCart}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
             isAdded

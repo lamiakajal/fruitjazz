@@ -3,6 +3,12 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { CartItem } from "@/types";
 
+interface ToastData {
+  message: string;
+  itemName: string;
+  weight: string;
+}
+
 interface CartContextType {
   cart: CartItem[];
   addToCart: (item: Omit<CartItem, "id">) => void;
@@ -13,6 +19,8 @@ interface CartContextType {
   setIsCartOpen: (open: boolean) => void;
   totalItems: number;
   subtotal: number;
+  toast: ToastData | null;
+  clearToast: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -32,6 +40,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   });
 
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [toast, setToast] = useState<ToastData | null>(null);
 
   // Sync state changes directly to localStorage
   useEffect(() => {
@@ -55,8 +64,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return [...prevCart, { ...item, id: cartItemId }];
     });
 
-    // Automatically reveal slide-out cart drawer
-    setIsCartOpen(true);
+    // Show temporary toast notification instead of forcing drawer open
+    setToast({
+      message: "Added to your basket!",
+      itemName: item.name,
+      weight: item.weight,
+    });
+
+    // Auto dismiss toast after 3 seconds
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
+  };
+
+  const clearToast = () => {
+    setToast(null);
   };
 
   const removeFromCart = (id: string) => {
@@ -100,6 +122,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setIsCartOpen,
         totalItems,
         subtotal,
+        toast,
+        clearToast,
       }}
     >
       {children}

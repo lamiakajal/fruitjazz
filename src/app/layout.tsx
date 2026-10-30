@@ -6,6 +6,7 @@ import Footer from "@/components/common/Footer";
 import WhatsAppButton from "@/components/common/WhatsAppButton";
 import { CartProvider } from "@/context/CartContext";
 import CartDrawer from "@/components/cart/CartDrawer";
+import CartToast from "@/components/cart/CartToast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +41,7 @@ export default function RootLayout({
           <Footer />
           <WhatsAppButton />
           <CartDrawer />
+          <CartToast />
         </CartProvider>
       </body>
     </html>
