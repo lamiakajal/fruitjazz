@@ -12,9 +12,11 @@ import {
   Phone,
   Truck,
 } from "lucide-react";
+import { useCart } from "@/context/CartContext";
 
 export default function Navbar() {
   const router = useRouter();
+  const { totalItems, setIsCartOpen } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,6 +30,7 @@ export default function Navbar() {
     { name: "Special Combos", href: "/shop?cat=combos", badge: "Sale" },
   ];
 
+  // Handle live search submission
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -38,7 +41,7 @@ export default function Navbar() {
 
   return (
     <>
-      {/* ১. টপ অ্যানাউন্সমেন্ট বার */}
+      {/* 1. Top Announcement Bar */}
       <div className="bg-[#14532D] text-amber-200 text-xs sm:text-sm py-2 px-4 transition-all">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-center sm:text-left">
           <div className="flex items-center gap-2">
@@ -62,7 +65,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* ২. মেইন স্টিকি নেভিগেশন */}
+      {/* 2. Main Sticky Navigation */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200 shadow-sm transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
           {/* Brand Logo */}
@@ -117,7 +120,7 @@ export default function Navbar() {
             {/* Search Trigger */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}
-              className={`p-2 rounded-full transition ${
+              className={`p-2 rounded-full transition cursor-pointer ${
                 searchOpen
                   ? "bg-amber-100 text-amber-700"
                   : "text-stone-600 hover:text-amber-600 hover:bg-stone-100"
@@ -127,10 +130,10 @@ export default function Navbar() {
               <Search className="w-5 h-5" />
             </button>
 
-            {/* Wishlist Icon */}
+            {/* Wishlist Link */}
             <Link
               href="/wishlist"
-              className="p-2 text-stone-600 hover:text-red-500 hover:bg-stone-100 rounded-full transition relative hidden sm:flex"
+              className="p-2 text-stone-600 hover:text-red-500 hover:bg-stone-100 rounded-full transition relative hidden sm:flex cursor-pointer"
               aria-label="Wishlist"
             >
               <Heart className="w-5 h-5" />
@@ -141,19 +144,20 @@ export default function Navbar() {
 
             {/* Shopping Cart Trigger */}
             <button
-              className="relative p-2.5 bg-amber-50 text-amber-700 rounded-full hover:bg-amber-100 transition shadow-xs"
+              onClick={() => setIsCartOpen(true)}
+              className="relative p-2.5 bg-amber-50 text-amber-700 rounded-full hover:bg-amber-100 transition shadow-xs cursor-pointer"
               aria-label="Shopping Cart"
             >
               <ShoppingBag className="w-5 h-5" />
               <span className="absolute -top-1 -right-1 bg-amber-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
-                0
+                {totalItems}
               </span>
             </button>
 
-            {/* Mobile Hamburger Button */}
+            {/* Mobile Menu Hamburger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-stone-700 lg:hidden rounded-lg hover:bg-stone-100 transition"
+              className="p-2 text-stone-700 lg:hidden rounded-lg hover:bg-stone-100 transition cursor-pointer"
               aria-label="Toggle Mobile Menu"
             >
               {mobileMenuOpen ? (
@@ -165,7 +169,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* ৩. এক্সপ্যান্ডেবল সার্চ বার */}
+        {/* 3. Expandable Search Bar */}
         {searchOpen && (
           <div className="border-t border-stone-200 bg-stone-50/90 py-3 px-4 sm:px-6 animate-in slide-in-from-top-2 duration-200">
             <form
@@ -185,7 +189,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-3 text-stone-400 hover:text-stone-600"
+                    className="absolute right-3 top-3 text-stone-400 hover:text-stone-600 cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -193,7 +197,7 @@ export default function Navbar() {
               </div>
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-[#14532D] text-white rounded-xl text-sm font-semibold hover:bg-[#0f4022] transition shrink-0"
+                className="px-5 py-2.5 bg-[#14532D] text-white rounded-xl text-sm font-semibold hover:bg-[#0f4022] transition shrink-0 cursor-pointer"
               >
                 Search
               </button>
@@ -201,7 +205,7 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* ৪. মোবাইল রেসপনসিভ মেনু */}
+        {/* 4. Mobile Responsive Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-stone-200 bg-white px-5 pt-4 pb-6 space-y-4 shadow-xl animate-in slide-in-from-top-3 duration-200">
             <div className="space-y-1">

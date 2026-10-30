@@ -4,6 +4,8 @@ import "./globals.css";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import WhatsAppButton from "@/components/common/WhatsAppButton";
+import { CartProvider } from "@/context/CartContext";
+import CartDrawer from "@/components/cart/CartDrawer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,10 +34,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen flex flex-col antialiased bg-[#FDFBF7] text-stone-800`}
         suppressHydrationWarning
       >
-        <Navbar />
-        <main className="grow">{children}</main>
-        <Footer />
-        <WhatsAppButton />
+        <CartProvider>
+          <Navbar />
+          <main className="grow">{children}</main>
+          <Footer />
+          <WhatsAppButton />
+          <CartDrawer />
+        </CartProvider>
       </body>
     </html>
   );
