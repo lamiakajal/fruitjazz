@@ -5,22 +5,33 @@ import Image from "next/image";
 import Link from "next/link";
 import { Heart, ShoppingBag, Star, Check } from "lucide-react";
 import { Product } from "@/types";
+import { useCart } from "@/context/CartContext";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  // ডিফল্টভাবে প্রথম ভ্যারিয়েন্ট সিলেক্ট থাকবে
+  // Default to the first weight variant (e.g. 250g)
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [isAdded, setIsAdded] = useState(false);
+  const { addToCart } = useCart();
 
   const activeVariant =
     product.variants[selectedVariantIndex] || product.variants[0];
 
+  // Add item with currently selected weight package to CartContext
   const handleAddToCart = () => {
+    addToCart({
+      productId: product.id,
+      name: product.name,
+      image: product.images[0],
+      weight: activeVariant.weight,
+      price: activeVariant.price,
+      quantity: 1,
+    });
+
     setIsAdded(true);
-    // পরে এখানে CartContext এর addToCart ফাংশন যুক্ত হবে
     setTimeout(() => {
       setIsAdded(false);
     }, 1500);
@@ -29,7 +40,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="group bg-white rounded-2xl border border-stone-200/80 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
       <div>
-        {/* Product Image & Badges */}
+        {/* Product Media & Tags */}
         <div className="relative h-56 w-full overflow-hidden bg-stone-100">
           <Link href={`/product/${product.slug}`}>
             <Image
@@ -46,18 +57,18 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.category}
           </span>
 
-          {/* Wishlist Button */}
+          {/* Wishlist Toggle Button */}
           <button
-            className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-xs rounded-full text-stone-500 hover:text-red-500 hover:bg-white transition shadow-xs"
+            className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-xs rounded-full text-stone-500 hover:text-red-500 hover:bg-white transition shadow-xs cursor-pointer"
             aria-label="Add to Wishlist"
           >
             <Heart className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Product Details */}
+        {/* Product Meta Information */}
         <div className="p-5 space-y-3">
-          {/* Rating */}
+          {/* Star Rating & Reviews */}
           <div className="flex items-center gap-1.5 text-xs text-amber-500 font-bold">
             <Star className="w-3.5 h-3.5 fill-current" />
             <span>{product.rating}</span>
@@ -66,19 +77,19 @@ export default function ProductCard({ product }: ProductCardProps) {
             </span>
           </div>
 
-          {/* Title */}
+          {/* Product Title */}
           <Link href={`/product/${product.slug}`} className="block">
             <h3 className="font-serif font-bold text-stone-800 text-base leading-snug hover:text-amber-700 transition line-clamp-1">
               {product.name}
             </h3>
           </Link>
 
-          {/* Short Description */}
+          {/* Brief Description */}
           <p className="text-xs text-stone-500 line-clamp-2 leading-relaxed">
             {product.description}
           </p>
 
-          {/* Weight Variant Switcher */}
+          {/* Interactive Weight Package Selection */}
           <div className="space-y-1.5 pt-1">
             <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block">
               Pack Size:
@@ -102,7 +113,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
 
-      {/* Pricing & Add to Cart Footer */}
+      {/* Dynamic Price Display & Cart Button */}
       <div className="p-5 pt-0 mt-2 border-t border-stone-100 flex items-center justify-between">
         <div>
           <span className="text-[11px] font-medium text-stone-400 block">
