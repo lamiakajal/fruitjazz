@@ -1,27 +1,29 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
-import WhatsAppButton from "@/components/common/WhatsAppButton";
-import { CartProvider } from "@/context/CartContext";
 import CartDrawer from "@/components/cart/CartDrawer";
 import CartToast from "@/components/cart/CartToast";
+import WhatsAppButton from "@/components/common/WhatsAppButton";
+import { CartProvider } from "@/context/CartContext";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const jakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const playfair = Playfair_Display({
   subsets: ["latin"],
+  variable: "--font-serif",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "FruitJazz | 100% Organic Honey & Premium Dry Fruits Pakistan",
   description:
-    "Buy premium quality almonds, walnuts, pure organic honey, and luxury gift boxes with cash on delivery across Pakistan.",
+    "Buy raw Sidr honey, Kashmiri organic honey, Gilgit walnuts, and California almonds online with nationwide Cash on Delivery in Pakistan.",
 };
 
 export default function RootLayout({
@@ -30,18 +32,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen flex flex-col antialiased bg-[#FDFBF7] text-stone-800`}
-        suppressHydrationWarning
-      >
+    <html lang="en" className={`${jakartaSans.variable} ${playfair.variable}`}>
+      <body className="font-sans antialiased text-stone-900 bg-[#FDFBF7]">
         <CartProvider>
           <Navbar />
-          <main className="grow">{children}</main>
+          <main className="min-h-screen">{children}</main>
           <Footer />
-          <WhatsAppButton />
           <CartDrawer />
           <CartToast />
+          <WhatsAppButton />
         </CartProvider>
       </body>
     </html>
