@@ -7,6 +7,7 @@ import CartDrawer from "@/components/cart/CartDrawer";
 import CartToast from "@/components/cart/CartToast";
 import WhatsAppButton from "@/components/common/WhatsAppButton";
 import { CartProvider } from "@/context/CartContext";
+import { WishlistProvider } from "@/context/WishlistContext";
 
 const jakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -35,12 +36,14 @@ export default function RootLayout({
     <html lang="en" className={`${jakartaSans.variable} ${playfair.variable}`}>
       <body className="font-sans antialiased text-stone-900 bg-[#FDFBF7]">
         <CartProvider>
-          <Navbar />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
-          <CartDrawer />
-          <CartToast />
-          <WhatsAppButton />
+          <WishlistProvider>
+            <Navbar />
+            <main className="min-h-screen">{children}</main>
+            <Footer />
+            <CartDrawer />
+            <CartToast />
+            <WhatsAppButton />
+          </WishlistProvider>
         </CartProvider>
       </body>
     </html>
