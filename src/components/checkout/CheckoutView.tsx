@@ -46,6 +46,7 @@ const emptySubscribe = () => () => {};
 export default function CheckoutView() {
   const { cart, subtotal, clearCart } = useCart();
 
+  // Avoid hydration mismatch by syncing client mount state
   const mounted = useSyncExternalStore(
     emptySubscribe,
     () => true,
@@ -63,7 +64,7 @@ export default function CheckoutView() {
   const [selectedPaymentId, setSelectedPaymentId] =
     useState<PaymentOption["id"]>("cod");
 
-  // Payment Transaction Reference State
+  // Payment transaction reference state
   const [transactionRef, setTransactionRef] = useState("");
   const [copiedText, setCopiedText] = useState("");
 
@@ -71,7 +72,7 @@ export default function CheckoutView() {
     storeConfig.paymentMethods.find((p) => p.id === selectedPaymentId) ||
     storeConfig.paymentMethods[0];
 
-  // 1. Voucher Discount
+  // 1. Voucher discount calculation
   let voucherDiscountAmount = 0;
   if (appliedVoucher) {
     if (appliedVoucher.type === "percent") {
@@ -83,14 +84,14 @@ export default function CheckoutView() {
     }
   }
 
-  // 2. Dynamic Payment Method Discount
+  // 2. Payment method incentive discount
   const paymentDiscountPercent = activePaymentMethod.discountPercent || 0;
   const paymentDiscountAmount =
     paymentDiscountPercent > 0
       ? Math.round((subtotal * paymentDiscountPercent) / 100)
       : 0;
 
-  // 3. Jazz Coins Discount
+  // 3. Jazz coins redemption discount
   const coinDiscountAmount =
     applyCoins && storeConfig.coinsEnabled
       ? Math.min(AVAILABLE_COINS * storeConfig.coinConversionRate, subtotal)
@@ -99,11 +100,11 @@ export default function CheckoutView() {
   const totalDiscounts =
     voucherDiscountAmount + paymentDiscountAmount + coinDiscountAmount;
 
-  // Delivery charge (Free over Rs. 2,999)
+  // Shipping fee calculation (Free delivery for orders >= Rs. 2,999)
   const shippingFee = subtotal >= 2999 || subtotal === 0 ? 0 : 200;
   const grandTotal = Math.max(0, subtotal - totalDiscounts + shippingFee);
 
-  // Customer shipping details
+  // Customer shipping information state
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
@@ -117,6 +118,7 @@ export default function CheckoutView() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [generatedOrderId, setGeneratedOrderId] = useState("");
+  const [orderError, setOrderError] = useState("");
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -133,7 +135,7 @@ export default function CheckoutView() {
     setTimeout(() => setCopiedText(""), 2000);
   };
 
-  // Smart 1-Click Pay Handler for Mobile Apps & Desktop Portals
+  // Launch mobile app deep link or web fallback portal
   const handleOneClickPay = () => {
     const isMobile =
       typeof navigator !== "undefined" &&
@@ -186,17 +188,64 @@ export default function CheckoutView() {
     setVoucherError("");
   };
 
-  const handleSubmitOrder = (e: React.FormEvent) => {
+  // Submit order handler syncing with MongoDB API route
+  const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setOrderError("");
 
-    setTimeout(() => {
-      const orderId = `FJ-${Math.floor(100000 + Math.random() * 900000)}`;
+    const orderId = `FJ-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    const orderPayload = {
+      orderNumber: orderId,
+      items: cart.map((item) => ({
+        productId: item.id,
+        name: item.name,
+        image: item.image,
+        weight: item.weight,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+      shippingAddress: {
+        fullName: formData.fullName,
+        phone: formData.phone,
+        email: formData.email || "guest@fruitjazz.com",
+        address: formData.address,
+        city: formData.city,
+        postalCode: formData.postalCode,
+      },
+      paymentMethod: selectedPaymentId,
+      transactionId: transactionRef || "",
+      subtotal,
+      discount: totalDiscounts,
+      deliveryFee: shippingFee,
+      totalAmount: grandTotal,
+    };
+
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderPayload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to persist order record.");
+      }
+
       setGeneratedOrderId(orderId);
-      setIsSubmitting(false);
       setOrderPlaced(true);
       clearCart();
-    }, 1500);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setOrderError(err.message);
+      } else {
+        setOrderError("An unexpected error occurred while placing your order.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!mounted) {
@@ -224,8 +273,9 @@ export default function CheckoutView() {
               Shukriya For Your Order!
             </h1>
             <p className="text-xs text-stone-500">
-              Your order has been logged. Our dispatch center will verify and
-              send tracking details to your WhatsApp.
+              Your order has been recorded securely in our database. Our
+              dispatch center will verify and send tracking details to your
+              WhatsApp.
             </p>
           </div>
 
@@ -271,7 +321,7 @@ export default function CheckoutView() {
             {totalDiscounts > 0 && (
               <div className="flex justify-between text-emerald-700 font-bold">
                 <span>Total Savings:</span>
-                <span>- Rs. {totalDiscounts.toLocaleString()}</span>
+                <span>Rs. {totalDiscounts.toLocaleString()}</span>
               </div>
             )}
             <div className="flex justify-between border-t border-stone-200 pt-2 font-bold text-stone-900 text-sm">
@@ -284,16 +334,16 @@ export default function CheckoutView() {
 
           <div className="pt-2 flex flex-col gap-3">
             <Link
-              href="/shop"
+              href="/orders"
               className="w-full py-3.5 bg-[#14532D] text-white rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-[#0f4022] transition"
             >
-              Continue Shopping
+              View in My Orders
             </Link>
             <Link
-              href="/"
+              href="/shop"
               className="text-xs font-bold text-stone-500 hover:text-stone-800 transition"
             >
-              Back to Home
+              Continue Shopping
             </Link>
           </div>
         </div>
@@ -341,9 +391,8 @@ export default function CheckoutView() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-          {/* 1. Left Form: Address & Payment Methods (7 Cols) */}
+          {/* Left Form: Address & Payment Methods */}
           <div className="lg:col-span-7 space-y-6">
-            {/* Customer Details Form */}
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-stone-200/80 shadow-xs space-y-6">
               <div>
                 <h1 className="text-2xl font-serif font-bold text-stone-900">
@@ -354,6 +403,12 @@ export default function CheckoutView() {
                   Pakistan.
                 </p>
               </div>
+
+              {orderError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-semibold">
+                  {orderError}
+                </div>
+              )}
 
               <form
                 id="checkout-form"
@@ -571,7 +626,7 @@ export default function CheckoutView() {
                           </div>
                         </label>
 
-                        {/* Interactive 1-Click Pay & QR Box for Selected Digital Method */}
+                        {/* 1-Click Pay & QR Box for selected digital method */}
                         {isSelected && method.id !== "cod" && (
                           <div className="mt-4 pt-4 space-y-3 bg-white p-4 rounded-xl border border-stone-200">
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -684,7 +739,7 @@ export default function CheckoutView() {
             </div>
           </div>
 
-          {/* 2. Right: Order Summary + Discounts, Vouchers & Coins (5 Cols) */}
+          {/* Right: Order Summary + Discounts, Vouchers & Coins */}
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-stone-200/80 shadow-xs space-y-6 sticky top-28">
               <div className="flex justify-between items-center pb-4 border-b border-stone-100">
@@ -825,7 +880,7 @@ export default function CheckoutView() {
                 {appliedVoucher && (
                   <div className="flex justify-between text-emerald-700 font-semibold">
                     <span>Voucher ({appliedVoucher.code}):</span>
-                    <span>- Rs. {voucherDiscountAmount.toLocaleString()}</span>
+                    <span>Rs. {voucherDiscountAmount.toLocaleString()}</span>
                   </div>
                 )}
 
@@ -835,14 +890,14 @@ export default function CheckoutView() {
                       {activePaymentMethod.name.split(" ")[0]} (
                       {paymentDiscountPercent}% OFF):
                     </span>
-                    <span>- Rs. {paymentDiscountAmount.toLocaleString()}</span>
+                    <span>Rs. {paymentDiscountAmount.toLocaleString()}</span>
                   </div>
                 )}
 
                 {applyCoins && coinDiscountAmount > 0 && (
                   <div className="flex justify-between text-amber-700 font-semibold">
                     <span>Jazz Coins:</span>
-                    <span>- Rs. {coinDiscountAmount.toLocaleString()}</span>
+                    <span>Rs. {coinDiscountAmount.toLocaleString()}</span>
                   </div>
                 )}
 
