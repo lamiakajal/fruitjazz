@@ -1,40 +1,60 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, ShoppingBag, Star, Check } from "lucide-react";
 import { Product } from "@/types";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 interface ProductCardProps {
   product: Product;
 }
+
+const emptySubscribe = () => () => {};
 
 export default function ProductCard({ product }: ProductCardProps) {
   // Default to the first weight variant
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [isAdded, setIsAdded] = useState(false);
   const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
 
+  // Safely verify client mount to prevent SSR hydration mismatch
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+
+  const isSaved = mounted ? isInWishlist(product.id) : false;
   const activeVariant =
     product.variants[selectedVariantIndex] || product.variants[0];
 
   // Dispatch selected item to Cart Context
   const handleAddToCart = () => {
     addToCart({
+      id: `${product.id}-${activeVariant.weight}`,
       productId: product.id,
       name: product.name,
       image: product.images[0],
       weight: activeVariant.weight,
       price: activeVariant.price,
       quantity: 1,
-    });
+    } as Parameters<typeof addToCart>[0]);
 
     setIsAdded(true);
     setTimeout(() => {
       setIsAdded(false);
     }, 1200);
+  };
+
+  // Toggle item in Wishlist Context
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleWishlist(product);
   };
 
   return (
@@ -60,10 +80,17 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Wishlist Button */}
           <button
             type="button"
-            className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-xs rounded-full text-stone-500 hover:text-red-500 hover:bg-white transition shadow-xs cursor-pointer"
-            aria-label="Add to Wishlist"
+            onClick={handleWishlistToggle}
+            className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-xs rounded-full hover:bg-white transition-all shadow-xs cursor-pointer active:scale-90"
+            aria-label={isSaved ? "Remove from Wishlist" : "Add to Wishlist"}
           >
-            <Heart className="w-4 h-4" />
+            <Heart
+              className={`w-4 h-4 transition-colors ${
+                isSaved
+                  ? "fill-rose-500 text-rose-500"
+                  : "text-stone-400 hover:text-rose-500"
+              }`}
+            />
           </button>
         </div>
 

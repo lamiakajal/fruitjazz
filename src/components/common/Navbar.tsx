@@ -13,6 +13,7 @@ import {
   Truck,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 // Empty subscribe function for client detection
 const emptySubscribe = () => () => {};
@@ -20,6 +21,7 @@ const emptySubscribe = () => () => {};
 export default function Navbar() {
   const router = useRouter();
   const { totalItems, setIsCartOpen } = useCart();
+  const { wishlist } = useWishlist();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -30,6 +32,8 @@ export default function Navbar() {
     () => true,
     () => false,
   );
+
+  const wishlistCount = wishlist.length;
 
   const categories = [
     { name: "Pure Honey", href: "/shop?cat=honey" },
@@ -141,16 +145,24 @@ export default function Navbar() {
               <Search className="w-5 h-5" />
             </button>
 
-            {/* Wishlist Link */}
+            {/* Wishlist Link with Live Badge */}
             <Link
               href="/wishlist"
               className="p-2 text-stone-600 hover:text-red-500 hover:bg-stone-100 rounded-full transition relative hidden sm:flex cursor-pointer"
               aria-label="Wishlist"
             >
-              <Heart className="w-5 h-5" />
-              <span className="absolute -top-0.5 -right-0.5 bg-stone-200 text-stone-700 text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                0
-              </span>
+              <Heart
+                className={`w-5 h-5 transition-colors ${
+                  mounted && wishlistCount > 0
+                    ? "text-rose-500 fill-rose-500"
+                    : "text-stone-600"
+                }`}
+              />
+              {mounted && wishlistCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                  {wishlistCount > 9 ? "9+" : wishlistCount}
+                </span>
+              )}
             </Link>
 
             {/* Shopping Cart Trigger with Animated Badge & Tooltip */}
@@ -280,10 +292,23 @@ export default function Navbar() {
               <Link
                 href="/wishlist"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 py-2 text-sm font-medium text-stone-700 hover:text-red-500"
+                className="flex items-center justify-between py-2 text-sm font-medium text-stone-700 hover:text-red-500"
               >
-                <Heart className="w-4 h-4" />
-                <span>My Wishlist</span>
+                <div className="flex items-center gap-2">
+                  <Heart
+                    className={`w-4 h-4 ${
+                      mounted && wishlistCount > 0
+                        ? "text-rose-500 fill-rose-500"
+                        : "text-stone-700"
+                    }`}
+                  />
+                  <span>My Wishlist</span>
+                </div>
+                {mounted && wishlistCount > 0 && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-600">
+                    {wishlistCount}
+                  </span>
+                )}
               </Link>
             </div>
 

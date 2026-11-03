@@ -4,7 +4,8 @@ import React, { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { Filter, SlidersHorizontal, ArrowUpDown, X } from "lucide-react";
 import ProductCard from "@/components/product/ProductCard";
-import { allProducts } from "@/data/products";
+import * as ProductsData from "@/data/products";
+import { Product } from "@/types";
 
 const categories = [
   "All",
@@ -48,7 +49,19 @@ export default function ShopCatalog() {
 
   // Filter and sort items dynamically
   const filteredProducts = useMemo(() => {
-    return allProducts
+    // Safely extract products list inside useMemo to avoid recreating references across renders
+    const rawData = ProductsData as Record<string, unknown>;
+    const catalogProducts: Product[] = (
+      Array.isArray(rawData.allProducts)
+        ? rawData.allProducts
+        : Array.isArray(rawData.products)
+          ? rawData.products
+          : Array.isArray(rawData.default)
+            ? rawData.default
+            : Object.values(rawData).find(Array.isArray) || []
+    ) as Product[];
+
+    return catalogProducts
       .filter((product) => {
         // Category filtering
         const matchesCategory =
