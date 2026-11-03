@@ -8,6 +8,7 @@ import CartToast from "@/components/cart/CartToast";
 import WhatsAppButton from "@/components/common/WhatsAppButton";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
+import AuthProvider from "@/components/common/AuthProvider";
 
 const jakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -34,17 +35,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${jakartaSans.variable} ${playfair.variable}`}>
-      <body className="font-sans antialiased text-stone-900 bg-[#FDFBF7]">
-        <CartProvider>
-          <WishlistProvider>
-            <Navbar />
-            <main className="min-h-screen">{children}</main>
-            <Footer />
-            <CartDrawer />
-            <CartToast />
-            <WhatsAppButton />
-          </WishlistProvider>
-        </CartProvider>
+      <body
+        className="font-sans antialiased text-stone-900 bg-[#FDFBF7]"
+        suppressHydrationWarning
+      >
+        <AuthProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <Navbar />
+              <main className="min-h-screen">{children}</main>
+              <Footer />
+              <CartDrawer />
+              <CartToast />
+              <WhatsAppButton />
+            </WishlistProvider>
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

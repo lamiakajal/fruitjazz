@@ -3,6 +3,7 @@
 import React, { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import {
   ShoppingBag,
   Search,
@@ -11,22 +12,26 @@ import {
   Heart,
   Phone,
   Truck,
+  User as UserIcon,
+  LogOut,
+  Package,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 
-// Empty subscribe function for client detection
 const emptySubscribe = () => () => {};
 
 export default function Navbar() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const { totalItems, setIsCartOpen } = useCart();
   const { wishlist } = useWishlist();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
-  // Safely detect client hydration without triggering ESLint cascading render rules
   const mounted = useSyncExternalStore(
     emptySubscribe,
     () => true,
@@ -44,7 +49,6 @@ export default function Navbar() {
     { name: "Special Combos", href: "/shop?cat=combos", badge: "Sale" },
   ];
 
-  // Handle product search navigation
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -83,7 +87,7 @@ export default function Navbar() {
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200 shadow-xs transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
           {/* Brand Logo */}
-          <Link href="/" className="flex items-center space-x-3 group">
+          <Link href="/" className="flex items-center space-x-3 shrink-0 group">
             <div className="w-10 h-10 bg-linear-to-tr from-amber-600 to-amber-400 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-md group-hover:scale-105 transition-transform">
               🌿
             </div>
@@ -98,7 +102,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8 text-sm font-semibold text-stone-700">
+          <nav className="hidden lg:flex items-center space-x-5 xl:space-x-7 text-[13.5px] font-semibold text-stone-700">
             <Link
               href="/"
               className="text-amber-600 hover:text-amber-700 transition"
@@ -129,9 +133,9 @@ export default function Navbar() {
             </Link>
           </nav>
 
-          {/* Action Buttons */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            {/* Search Toggle Button */}
+          {/* Action Icons Section */}
+          <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+            {/* Search Button */}
             <button
               type="button"
               onClick={() => setSearchOpen(!searchOpen)}
@@ -145,7 +149,7 @@ export default function Navbar() {
               <Search className="w-5 h-5" />
             </button>
 
-            {/* Wishlist Link with Live Badge */}
+            {/* Wishlist Link */}
             <Link
               href="/wishlist"
               className="p-2 text-stone-600 hover:text-red-500 hover:bg-stone-100 rounded-full transition relative hidden sm:flex cursor-pointer"
@@ -165,39 +169,87 @@ export default function Navbar() {
               )}
             </Link>
 
-            {/* Shopping Cart Trigger with Animated Badge & Tooltip */}
-            <div className="relative group">
-              <button
-                type="button"
-                onClick={() => setIsCartOpen(true)}
-                className="relative p-2.5 bg-amber-50 text-amber-700 rounded-full hover:bg-amber-100 transition shadow-xs cursor-pointer flex items-center justify-center"
-                aria-label="Shopping Cart"
-              >
-                <ShoppingBag
-                  className={`w-5 h-5 ${
-                    mounted && totalItems > 0
-                      ? "text-[#14532D]"
-                      : "text-stone-700"
-                  }`}
-                />
+            {/* Shopping Cart */}
+            <button
+              type="button"
+              onClick={() => setIsCartOpen(true)}
+              className="relative p-2 text-stone-600 hover:text-[#14532D] hover:bg-stone-100 rounded-full transition cursor-pointer flex items-center justify-center"
+              aria-label="Shopping Cart"
+            >
+              <ShoppingBag className="w-5 h-5" />
+              {mounted && totalItems > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-amber-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                  {totalItems}
+                </span>
+              )}
+            </button>
 
-                {mounted && totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-amber-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs animate-bounce">
-                    {totalItems}
-                  </span>
+            {/* User Account / Profile */}
+            {mounted && status === "authenticated" && session?.user ? (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="w-8 h-8 rounded-full bg-[#14532D] text-white font-bold text-xs flex items-center justify-center shadow-xs hover:ring-2 hover:ring-amber-500 transition cursor-pointer overflow-hidden ml-1"
+                >
+                  {session.user.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={session.user.image}
+                      alt={session.user.name || "User"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    session.user.name?.charAt(0).toUpperCase() || "U"
+                  )}
+                </button>
+
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-stone-200 py-2 z-50 animate-in fade-in-50 duration-150">
+                    <div className="px-4 py-2 border-b border-stone-100">
+                      <p className="text-xs font-bold text-stone-800 truncate">
+                        {session.user.name}
+                      </p>
+                      <p className="text-[10px] text-stone-400 truncate">
+                        {session.user.email}
+                      </p>
+                    </div>
+
+                    <Link
+                      href="/orders"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-stone-700 hover:bg-stone-50 transition"
+                    >
+                      <Package className="w-4 h-4 text-[#14532D]" />
+                      <span>My Orders</span>
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        signOut({ callbackUrl: "/" });
+                      }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 transition text-left cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
                 )}
-              </button>
-
-              <div className="absolute right-0 top-full mt-2 hidden group-hover:flex flex-col items-center z-50">
-                <div className="bg-stone-900 text-white text-[11px] font-semibold py-1.5 px-3 rounded-lg shadow-xl whitespace-nowrap">
-                  {mounted && totalItems > 0
-                    ? `View ${totalItems} item${totalItems > 1 ? "s" : ""} in cart`
-                    : "Your cart is empty"}
-                </div>
               </div>
-            </div>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-stone-300 hover:border-[#14532D] text-stone-700 hover:text-[#14532D] hover:bg-stone-50 transition text-xs font-bold ml-1 cursor-pointer"
+                aria-label="Sign In"
+              >
+                <UserIcon className="w-3.5 h-3.5" />
+                <span>Sign In</span>
+              </Link>
+            )}
 
-            {/* Mobile Hamburger Button */}
+            {/* Mobile Menu Toggle */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -213,7 +265,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* 3. Search Bar Dropdown */}
+        {/* 3. Search Dropdown */}
         {searchOpen && (
           <div className="border-t border-stone-200 bg-stone-50/90 py-3 px-4 sm:px-6">
             <form
@@ -249,7 +301,7 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* 4. Mobile Menu */}
+        {/* 4. Mobile Menu Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-stone-200 bg-white px-5 pt-4 pb-6 space-y-4 shadow-xl">
             <div className="space-y-1">
@@ -310,6 +362,40 @@ export default function Navbar() {
                   </span>
                 )}
               </Link>
+
+              {/* Mobile Auth Button */}
+              {mounted && status === "authenticated" ? (
+                <div className="pt-2 border-t border-stone-100 space-y-1">
+                  <Link
+                    href="/orders"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 py-2 text-sm font-medium text-stone-700"
+                  >
+                    <Package className="w-4 h-4 text-[#14532D]" />
+                    <span>My Past Orders</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      signOut({ callbackUrl: "/" });
+                    }}
+                    className="w-full text-left py-2 text-sm font-semibold text-rose-600 flex items-center gap-2 cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Sign Out ({session?.user?.name})</span>
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 py-2 text-sm font-semibold text-[#14532D]"
+                >
+                  <UserIcon className="w-4 h-4" />
+                  <span>Sign In / Create Account</span>
+                </Link>
+              )}
             </div>
 
             <div className="pt-2">
