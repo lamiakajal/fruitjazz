@@ -1,0 +1,16 @@
+import { NextResponse } from "next/server";
+import { getAdminEmail } from "@/lib/admin";
+import { connectToDatabase } from "@/lib/mongodb";
+import Order from "@/models/Order";
+
+export async function GET(req: Request) {
+  if (!(await getAdminEmail())) {
+    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  }
+  const status = new URL(req.url).searchParams.get("status");
+  const filter = status && status !== "all" ? { orderStatus: status } : {};
+
+  await connectToDatabase();
+  const orders = await Order.find(filter).sort({ createdAt: -1 }).limit(200).lean();
+  return NextResponse.json({ orders });
+}
