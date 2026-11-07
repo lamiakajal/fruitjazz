@@ -107,3 +107,38 @@ The full walkthrough (MongoDB Atlas, Google sign-in, Resend, first-time admin se
 | `npm run build` | Create the production build |
 | `npm start` | Run the production build |
 | `npm run lint` | Run ESLint |
+
+## Project structure
+```
+src/
+  app/          storefront pages, /admin, /api route handlers
+  components/   ui, home, product, cart, checkout, orders, admin
+  context/      cart, wishlist and settings providers
+  data/         brand defaults, starter categories and products
+  lib/          pricing, settings, catalog, rewards, email, tracking, rich text
+  models/       Mongoose models
+docs/           architecture, admin guide, images
+```
+
+## Admin panel
+After the first deploy: sign in with an admin Google account, open **/admin/products** and import the starter
+catalog, then fill in **Settings** and **Content**. Everything the owner needs is documented in
+[docs/ADMIN-GUIDE.md](docs/ADMIN-GUIDE.md).
+
+## Security
+Server-side pricing, stock, coupon and coin checks; atomic updates; hashed passwords and tokens; role checks on every
+admin request; validated uploads; rate limiting; secure headers. See [SECURITY.md](SECURITY.md).
+
+## Deployment
+Push to a private repository, import it in Vercel, add the environment variables and set `NEXTAUTH_URL` and
+`NEXT_PUBLIC_SITE_URL` to the live domain. Step-by-step instructions are in [SETUP-GUIDE.md](SETUP-GUIDE.md).
+
+## Not included
+- Card or wallet payment gateway integration (needs merchant credentials; payments are verified manually)
+- Automatic WhatsApp messages (needs the WhatsApp Business API; the admin has one-click prefilled messages)
+
+## Contributing
+Branch from `main`, use Conventional Commits and open a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+Proprietary, all rights reserved. See [LICENSE](LICENSE).
