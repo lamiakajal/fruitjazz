@@ -16,6 +16,22 @@
 
 </div>
 
+## Table of contents
+- [Overview](#overview)
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Architecture](#architecture)
+- [Getting started](#getting-started)
+- [Environment variables](#environment-variables)
+- [Scripts](#scripts)
+- [Project structure](#project-structure)
+- [Admin panel](#admin-panel)
+- [Security](#security)
+- [Deployment](#deployment)
+- [Not included](#not-included)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Overview
 Mewazar is built for a Pakistani food business: customers browse by category, pick pack sizes (250g / 500g / 1kg),
 pay by Cash on Delivery, bank transfer or wallet, and track their parcel. The owner manages products, stock, orders,
@@ -142,3 +158,6 @@ Branch from `main`, use Conventional Commits and open a pull request. See [CONTR
 
 ## License
 Proprietary, all rights reserved. See [LICENSE](LICENSE).
+
+---
+Built by **Lamia Kajal**, full-stack developer. [github.com/lamiakajal](https://github.com/lamiakajal)
