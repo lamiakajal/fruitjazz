@@ -51,3 +51,25 @@ and has a light and a dark theme.
 
 ### Customer accounts
 Google, GitHub or email sign-in, email confirmation, password reset, order history and reward coins.
+
+## Tech stack
+| Layer | Technology |
+| --- | --- |
+| Framework | Next.js 16 (App Router, server components, route handlers), React 19 |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 with design tokens, light and dark themes |
+| Database | MongoDB Atlas with Mongoose |
+| Auth | NextAuth (Google, GitHub, credentials), bcrypt |
+| Email | Resend HTTP API (no extra package) |
+| Rate limiting | In-memory, or Upstash Redis when configured |
+| Hosting | Vercel (any Node 20+ host works) |
+
+## Architecture
+```mermaid
+flowchart LR
+  B[Browser<br/>storefront + admin] --> S[Next.js server<br/>components + /api]
+  S --> D[(MongoDB)]
+  S --> M[Resend email]
+  S -.-> R[(Upstash Redis)]
+```
+More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
