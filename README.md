@@ -73,3 +73,37 @@ flowchart LR
   S -.-> R[(Upstash Redis)]
 ```
 More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Getting started
+Requires **Node.js 20.9+**.
+
+```bash
+git clone https://github.com/lamiakajal/mewazar.git
+cd mewazar
+npm install
+cp .env.example .env.local     # then fill in the values
+npm run dev                    # http://localhost:3000
+```
+
+The full walkthrough (MongoDB Atlas, Google sign-in, Resend, first-time admin setup) is in
+[SETUP-GUIDE.md](SETUP-GUIDE.md). The shop owner's manual is in [docs/ADMIN-GUIDE.md](docs/ADMIN-GUIDE.md).
+
+## Environment variables
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `MONGODB_URI` | yes | MongoDB connection string |
+| `NEXTAUTH_SECRET`, `NEXTAUTH_URL` | yes | NextAuth secret and site URL |
+| `NEXT_PUBLIC_SITE_URL` | yes | Public URL for SEO and email links |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | yes | Google sign-in (admin login) |
+| `ADMIN_EMAILS` | yes | Comma-separated admin emails (Google or GitHub sign-in) |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | no | GitHub sign-in |
+| `RESEND_API_KEY`, `EMAIL_FROM`, `ADMIN_NOTIFY_EMAIL` | no | Order, reset and confirmation emails |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | no | Shared rate limiting |
+
+## Scripts
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Create the production build |
+| `npm start` | Run the production build |
+| `npm run lint` | Run ESLint |
